@@ -8,15 +8,16 @@ export default async function handler(req, res) {
 
 function generateRegistrationOptions({email}) {
   const rp = {
-    name: "tescoppe",
+    id: 'localhost',
+    name: "vaibhav"
   };
   const pubKeyCredParams = [
-    { type: "public-key", alg: -7 },
-    { type: "public-key", alg: -37 },
-    { type: "public-key", alg: -257 },
+    { type: "public-key", alg: -7 }
+    // { type: "public-key", alg: -37 },
+    // { type: "public-key", alg: -257 },
   ];
   const authenticatorSelection = {
-    // authenticatorAttachment: 'cross-platform',
+    // authenticatorAttachment: 'platform',
     requireResidentKey: false,
     userVerification: "preferred",
   };

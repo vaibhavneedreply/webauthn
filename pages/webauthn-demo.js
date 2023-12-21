@@ -1,9 +1,8 @@
+const crypto    = require('crypto');
 import { useState } from "react";
 import webAuthnStyles from "../styles/webauthn.module.css";
 
 export default function WebAuthnDemo() {
-  const [registrationOptions, setRegistrationOptions] = useState(null);
-  const [registrationResult, setRegistrationResult] = useState(null);
   const [query, setQuery] = useState({
     email: "",
   });
@@ -12,9 +11,9 @@ export default function WebAuthnDemo() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleInput = async (e) => {
-    setSuccessMessage('');
-    setSuccessMessage('');
+  const handleInput = (e) => {
+    setSuccessMessage("");
+    setErrorMessage("");
     const fieldName = e.target.name;
     const fieldValue = e.target.value;
     setQuery((prev) => ({
@@ -38,6 +37,13 @@ export default function WebAuthnDemo() {
     return emailRegex.test(inputEmail);
   };
 
+  let randomBase64URLBuffer = (len) => {
+    len = len || 32;
+    let buff = crypto.randomBytes(len);
+    return base64url(buff);
+  }
+
+
   const handleRegister = async () => {
     try {
       const response = await fetch("/api/webauthn/register", {
@@ -49,33 +55,110 @@ export default function WebAuthnDemo() {
         ...data,
         user: {
           ...data.user,
-          id: new Uint8Array(16),
+          id: new Uint8Array([79, 252, 83, 72, 214, 7, 89, 26]),
         },
-        challenge: new Uint8Array(32),
+        challenge: randomBase64URLBuffer(32),
       };
-      setRegistrationOptions(registerBody);
-      await startWebAuthnRegistration(registerBody);
+      const credential = await navigator.credentials.create({
+        publicKey: registerBody,
+      });
+      const credentialToStore = {
+        rawId: Array.from(new Uint8Array(credential.rawId)),
+        response: {
+          attestationObject: Array.from(
+            new Uint8Array(credential.response.attestationObject)
+          ),
+          clientDataJSON: Array.from(
+            new Uint8Array(credential.response.clientDataJSON)
+          ),
+        },
+        authenticatorAttachment: credential.authenticatorAttachment,
+        id: credential.id,
+        type: credential.type,
+      };
+      localStorage.setItem(
+        "webAuthnCredentials",
+        JSON.stringify(credentialToStore)
+      );
+      setSuccessMessage(`Registered ${query.email}! Try to authenticate...`);
+      setQuery({ email: "" });
+      setIsSubmitDisabled(true);
+      return true;
     } catch (error) {
       setErrorMessage("Error during registration! Try again...");
       console.error("Error during registration:", error);
     }
   };
 
-  const startWebAuthnRegistration = async (registerBody) => {
+  const arraysEqual = (arr1, arr2) => {
+    if (arr1.length !== arr2.length) return false;
+    for (let i = 0; i < arr1.length; i++) {
+      if (arr1[i] !== arr2[i]) return false;
+    }
+    return true;
+  }
+
+  const handleAuthentication = async () => {
     try {
-      const credential = await navigator.credentials.create({
-        publicKey: registerBody,
-      });
-      setRegistrationResult(credential);
-      setSuccessMessage(
-        `Successfully registered ${query.email}! Try to authenticate...`
-      );
-      setQuery({ email: "" });
-      setIsSubmitDisabled(true);
-      // await sendCredentialToServer(credential);
+      const parsedCredential = JSON.parse(localStorage.getItem("webAuthnCredentials"));
+      const options = {
+        publicKey: {
+          challenge: new Uint8Array([79, 252, 83, 72, 214, 7, 89, 26]),
+          allowCredentials: [
+            {
+              type: parsedCredential.type,
+              id: new Uint8Array(parsedCredential.rawId),
+            },
+          ],
+        },
+      };
+
+
+      const credential = await navigator.credentials.get(options);
+      const receivedChallenge = new Uint8Array(credential.response.clientDataJSON);
+      const expectedChallenge = new Uint8Array(parsedCredential.response.clientDataJSON);
+      if(arraysEqual(receivedChallenge, expectedChallenge)) {
+        console.log('its herer');
+      } else {
+        console.log('its not herer');
+      }
+
+      // if (!credential) {
+      //   setErrorMessage("Authentication failed or no credential obtained...");
+      //   return;
+      // }
+      // const publicKey = options.publicKey;
+      // const expectedChallenge = new Uint8Array([79, 252, 83, 72, 214, 7, 89, 26]);
+      // const expectedAllowCredentials = publicKey.allowCredentials;
+
+      // if (credential.response.clientDataJSON && credential.rawId) {
+      //   const { response, rawId } = credential;
+      //   const clientDataJSON = new Uint8Array(response.clientDataJSON);
+      //   const { challenge } = JSON.parse(new TextDecoder().decode(clientDataJSON));
+      //   const receivedChallengeArray = new TextEncoder().encode(challenge);
+      //   const receivedChallenge = new Uint8Array(receivedChallengeArray);
+
+      //   console.log(expectedChallenge, "expectedChallenge");
+      //   console.log(receivedChallenge, "receivedChallenge");
+      //   if (receivedChallenge === expectedChallenge) {
+      //     const receivedCredentialId = new Uint8Array(rawId).toString();
+      //     const isCredentialAllowed = expectedAllowCredentials.some(
+      //       ({type, id}) =>
+      //         cred.type === credential.type && cred.id === receivedCredentialId
+      //     );
+      //     if (isCredentialAllowed) {
+      //       console.log("Credential is valid!");
+      //     } else {
+      //       console.error("Invalid credential ID!");
+      //     }
+      //   } else {
+      //     console.error("Invalid challenge or RPID!");
+      //   }
+      // } else {
+      //   console.error("Invalid response data in obtained credential.");
+      // }
     } catch (error) {
-      setErrorMessage("Error during registration! Try again...");
-      console.error("Error during WebAuthn registration:", error);
+      console.log(error);
     }
   };
 
@@ -110,6 +193,7 @@ export default function WebAuthnDemo() {
             </button>
             <button
               className={webAuthnStyles.button}
+              onClick={handleAuthentication}
               disabled={isSubmitDisabled}
             >
               Authenticate
