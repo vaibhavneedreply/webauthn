@@ -25,7 +25,7 @@ export default function WebAuthnDemo1() {
       setValidationErrorMessage("email is required.");
       setIsSubmitDisabled(true);
     } else if (fieldName === "email" && !validateEmail(fieldValue)) {
-      setValidationErrorMessage("enter a valid email address.");
+      setValidationErrorMessage("Enter a valid email address!");
       setIsSubmitDisabled(true);
     } else {
       setValidationErrorMessage("");

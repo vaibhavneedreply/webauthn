@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 
 const name = 'Vaibhav Jain';
-export const siteTitle = 'Next.js Sample Website';
+export const siteTitle = 'WebAuthn';
 
 export default function Layout({ children, home }) {
   return (
@@ -15,7 +15,7 @@ export default function Layout({ children, home }) {
         <link rel="icon" href="/favicon.ico" />
         <meta
           name="description"
-          content="Learn how to build a personal website using Next.js"
+          content="Learn how to web authentication works"
         />
         <meta
           property="og:image"
@@ -31,7 +31,7 @@ export default function Layout({ children, home }) {
           <>
             <Image
               priority
-              src="/images/profile.jpg"
+              src="/images/profile1.jpg"
               className={utilStyles.borderCircle}
               height={144}
               width={144}
@@ -40,8 +40,8 @@ export default function Layout({ children, home }) {
             <h1 className={utilStyles.heading2Xl}>{name}</h1>
           </>
         ) : (
-          <>
-            <Link href="/">
+          <div className={styles.postHeader}>
+            {/* <Link href="/">
               <Image
                 priority
                 src="/images/profile.jpg"
@@ -50,16 +50,16 @@ export default function Layout({ children, home }) {
                 width={108}
                 alt=""
               />
-            </Link>
-            <h2 className={utilStyles.headingLg}>
+            </Link> */}
+            {/* <h2 className={utilStyles.headingLg}>
               <Link href="/" className={utilStyles.colorInherit}>
                 {name}
               </Link>
-            </h2>
-          </>
+            </h2> */}
+          </div>
         )}
       </header>
-      <main>{children}</main>
+      <main className={styles.main}>{children}</main>
       {!home && (
         <div className={styles.backToHome}>
           <Link href="/">← Back to home</Link>

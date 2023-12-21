@@ -10,6 +10,22 @@
   align-items: center;
 }
 
+.postHeader {
+  display: flex;
+  height: 200px;
+  width: 100%;
+  background-image: url(/_next/static/media/profile.1d8d89dd.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-color: #ccc;
+}
+
+.main {
+  padding: 10px 10px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
 .backToHome {
   margin: 3rem 0 0;
 }
