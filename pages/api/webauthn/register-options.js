@@ -27,7 +27,7 @@ export default withSession(async function handler(req, res) {
       authenticatorSelection: {
         residentKey: "discouraged",
       },
-      supportedAlgorithmIDs: [-7, -257],
+      supportedAlgorithmIDs: [-7, -37, -257],
     });
     req.session.set(email, {
       id,

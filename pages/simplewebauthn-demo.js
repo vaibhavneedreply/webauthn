@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   startAuthentication,
   startRegistration,
@@ -53,7 +54,13 @@ export default function WebAuthnDemo1() {
       setErrorMessage(options.message ?? "Something went wrong!");
       return;
     }
-    const localResponse = await startRegistration(options);
+    let localResponse = {};
+    try {
+      localResponse = await startRegistration(options)
+    } catch (error) {
+      setErrorMessage(options.message ?? "Something went wrong!");
+      return;
+    }
     const verificationResponse = await fetch("/api/webauthn/register-verify", {
       method: "POST",
       headers: {
